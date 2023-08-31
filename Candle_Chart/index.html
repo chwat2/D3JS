@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+    body {
+        font: 10px sans-serif;
+    }
+
+    text {
+        fill: #000;
+    }
+
+    button {
+        position: absolute;
+        right: 20px;
+        top: 440px;
+        display: none;
+    }
+
+    path.candle {
+        stroke: #000000;
+    }
+
+    path.candle.body {
+        stroke-width: 0;
+    }
+
+    path.candle.up {
+        fill: #00AA00;
+        stroke: #00AA00;
+    }
+
+    path.candle.down {
+        fill: #FF0000;
+        stroke: #FF0000;
+    }
+
+</style>
+<body>
+<script src="http://d3js.org/d3.v4.min.js"></script>
+<script src="http://techanjs.org/techan.min.js"></script>
+<script>
+
+    var margin = {top: 70, right: 30, bottom: 40, left: 80},
+            width = 960 - margin.left - margin.right,
+            height = 500 - margin.top - margin.bottom;
+
+
+    var x = techan.scale.financetime()
+            .range([0, width]);
+
+    var y = d3.scaleLinear()
+            .range([height, 0]);
+
+    var candlestick = techan.plot.candlestick()
+            .xScale(x)
+            .yScale(y);
+
+    var xAxis = d3.axisBottom()
+            .scale(x);
+
+    var yAxis = d3.axisLeft()
+            .scale(y);
+
+    var svg = d3.select("body").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    d3.csv("BTC-USD_2023.csv", function(error, data) {
+        var accessor = candlestick.accessor();
+
+        data = data.map(function(d) {
+            return {
+                date: new Date(d.Date),
+                open: +d.Open,
+                high: +d.High,
+                low: +d.Low,
+                close: +d.Close,
+                volume: +d.Volume
+            };
+        });
+
+        svg.append("g")
+                .attr("class", "candlestick");
+
+        svg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")");
+
+        svg.append("g")
+                .attr("class", "y axis")
+                svg.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 0 - margin.left)
+                .attr("x", 0 - (height / 2))
+                .attr("dy", "1em")
+                .style("text-anchor", "middle")
+                .style("font-size", "14px")
+                .style("fill", "#777")
+                .style("font-family", "sans-serif")
+                .text("Price [USD]");
+
+
+    // Add the chart title
+  svg.append("text")
+    .attr("class", "chart-title")
+    .attr("x", margin.left - 115)
+    .attr("y", margin.top - 100)
+    .style("font-size", "24px")
+    //.style("font-weight", "bold")
+    .style("font-family", "sans-serif")
+    .text("Bitcoin Price in USD since  2023 - Candlestick Chart");
+
+  // Add the source credit
+  svg.append("text")
+    .attr("class", "source-credit")
+    .attr("x", width - 925)
+    .attr("y", height + margin.bottom - 3)
+    .style("font-size", "9px")
+    .style("font-family", "sans-serif")
+    .text("Source: https://finance.yahoo.com/");
+    
+    draw(data);
+
+    });
+
+    function draw(data) {
+        x.domain(data.map(candlestick.accessor().d));
+        y.domain(techan.scale.plot.ohlc(data, candlestick.accessor()).domain());
+
+        svg.selectAll("g.candlestick").datum(data).call(candlestick);
+        svg.selectAll("g.x.axis").call(xAxis);
+        svg.selectAll("g.y.axis").call(yAxis);
+    }
+
+</script>
