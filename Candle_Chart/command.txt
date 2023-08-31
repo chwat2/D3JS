@@ -1,0 +1,1 @@
+SELECT  * FROM "BTC-USD" Where Date in '2023';
